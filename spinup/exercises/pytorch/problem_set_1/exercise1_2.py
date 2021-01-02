@@ -33,18 +33,20 @@ def mlp(sizes, activation, output_activation=nn.Identity):
         (Use an nn.Sequential module.)
 
     """
-    #######################
-    #                     #
-    #   YOUR CODE HERE    #
-    #                     #
-    #######################
-    pass
+    layers = []
+    for in_size, out_size in zip(sizes[:-1], sizes[1:]):
+        layers.append(nn.Linear(in_size, out_size))
+        layers.append(activation())
+    layers[-1] = output_activation()
+    return nn.Sequential(*layers)
 
 class DiagonalGaussianDistribution:
 
     def __init__(self, mu, log_std):
         self.mu = mu
         self.log_std = log_std
+        cov_mat = torch.diag(torch.exp(log_std) ** 2)
+        self.dist = torch.distributions.multivariate_normal.MultivariateNormal(mu, cov_mat)
 
     def sample(self):
         """
@@ -52,12 +54,7 @@ class DiagonalGaussianDistribution:
             A PyTorch Tensor of samples from the diagonal Gaussian distribution with
             mean and log_std given by self.mu and self.log_std.
         """
-        #######################
-        #                     #
-        #   YOUR CODE HERE    #
-        #                     #
-        #######################
-        pass
+        return self.dist.sample()
 
     #================================(Given, ignore)==========================================#
     def log_prob(self, value):
@@ -80,14 +77,9 @@ class MLPGaussianActor(nn.Module):
         independent of observations, initialized to [-0.5, -0.5, ..., -0.5].
         (Make sure it's trainable!)
         """
-        #######################
-        #                     #
-        #   YOUR CODE HERE    #
-        #                     #
-        #######################
-        # self.log_std = 
-        # self.mu_net = 
-        pass 
+        self.log_std = nn.parameter.Parameter(torch.ones(act_dim) * -0.5)
+        self.mu_net = mlp([obs_dim, *hidden_sizes, act_dim], activation)
+        return
 
     #================================(Given, ignore)==========================================#
     def forward(self, obs, act=None):
