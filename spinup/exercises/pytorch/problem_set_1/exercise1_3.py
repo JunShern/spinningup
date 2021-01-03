@@ -203,38 +203,20 @@ def td3(env_fn, actor_critic=core.MLPActorCritic, ac_kwargs=dict(), seed=0,
     def compute_loss_q(data):
         o, a, r, o2, d = data['obs'], data['act'], data['rew'], data['obs2'], data['done']
 
-        # Q-values
-        #######################
-        #                     #
-        #   YOUR CODE HERE    #
-        #                     #
-        #######################
-        # q1 = 
-        # q2 = 
+        # Compute target actions
+        a_next = ac_targ.pi(torch.as_tensor(o2, dtype=torch.float32))
+        a_next += torch.clamp(target_noise * torch.randn(act_dim), -noise_clip, noise_clip)
+        a_next = torch.clamp(a_next, -act_limit, act_limit)
 
-        # Target policy smoothing
-        #######################
-        #                     #
-        #   YOUR CODE HERE    #
-        #                     #
-        #######################
-
-        # Target Q-values
-        #######################
-        #                     #
-        #   YOUR CODE HERE    #
-        #                     #
-        #######################
-
-        # MSE loss against Bellman backup
-        #######################
-        #                     #
-        #   YOUR CODE HERE    #
-        #                     #
-        #######################
-        # loss_q1 = 
-        # loss_q2 = 
-        # loss_q = 
+        # Compute targets
+        q1 = ac_targ.q1(o2, a_next)
+        q2 = ac_targ.q2(o2, a_next)
+        y = r + gamma * (1 - d) * torch.min(q1, q2)
+        
+        # Loss function
+        loss_q1 = ((ac.q1(o, a) - y) ** 2).mean()
+        loss_q2 = ((ac.q2(o, a) - y) ** 2).mean()
+        loss_q = loss_q1 + loss_q2
 
         # Useful info for logging
         loss_info = dict(Q1Vals=q1.detach().numpy(),
@@ -244,12 +226,8 @@ def td3(env_fn, actor_critic=core.MLPActorCritic, ac_kwargs=dict(), seed=0,
 
     # Set up function for computing TD3 pi loss
     def compute_loss_pi(data):
-        #######################
-        #                     #
-        #   YOUR CODE HERE    #
-        #                     #
-        #######################
-        # loss_pi = 
+        o = torch.as_tensor(data['obs'], dtype=torch.float32)
+        loss_pi = -ac.q1(o, ac.pi(o)).mean() # Gradient ascent
         return loss_pi
 
     #=========================================================================#
