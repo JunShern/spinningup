@@ -90,9 +90,10 @@ def randwalk(env_fn, actor_critic=core.MLPActorCritic, ac_kwargs=dict(),  seed=0
         vf_lr=1e-3, train_v_iters=80, lam=0.97, max_ep_len=1000,
         logger_kwargs=dict(), save_freq=10):
     """
-    Vanilla Policy Gradient 
+    Random Walk
 
-    (with GAE-Lambda for advantage estimation)
+    (Hijacked from VPG implementation; note that most of these parameters will 
+    have no effect on this algorithm, which is simply a uniform random walk)
 
     Args:
         env_fn : A function which creates a copy of the environment.
