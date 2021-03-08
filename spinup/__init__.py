@@ -12,6 +12,7 @@ from spinup.algos.tf1.trpo.trpo import trpo as trpo_tf1
 from spinup.algos.tf1.vpg.vpg import vpg as vpg_tf1
 
 from spinup.algos.pytorch.ddpg.ddpg import ddpg as ddpg_pytorch
+from spinup.algos.pytorch.my_vpg.my_vpg import my_vpg as my_vpg_pytorch
 from spinup.algos.pytorch.ppo.ppo import ppo as ppo_pytorch
 from spinup.algos.pytorch.randwalk.randwalk import randwalk as randwalk_pytorch
 from spinup.algos.pytorch.sac.sac import sac as sac_pytorch

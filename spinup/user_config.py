@@ -4,13 +4,14 @@ import os.path as osp
 # Default neural network backend for each algo
 # (Must be either 'tf1' or 'pytorch')
 DEFAULT_BACKEND = {
-    'vpg': 'pytorch',
-    'trpo': 'tf1',
+    'my_vpg': 'pytorch',
+    'ddpg': 'pytorch',
     'ppo': 'pytorch',
     'randwalk': 'pytorch',
-    'ddpg': 'pytorch',
+    'sac': 'pytorch',
     'td3': 'pytorch',
-    'sac': 'pytorch'
+    'trpo': 'tf1',
+    'vpg': 'pytorch',
 }
 
 # Where experiment outputs are saved by default:
