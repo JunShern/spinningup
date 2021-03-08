@@ -3,13 +3,13 @@ import torch
 from torch.optim import Adam
 import gym
 import time
-import spinup.algos.pytorch.vpg.core as core
+import spinup.algos.pytorch.randwalk.core as core
 from spinup.utils.logx import EpochLogger
 from spinup.utils.mpi_pytorch import setup_pytorch_for_mpi, sync_params, mpi_avg_grads
 from spinup.utils.mpi_tools import mpi_fork, mpi_avg, proc_id, mpi_statistics_scalar, num_procs
 
 
-class VPGBuffer:
+class Buffer:
     """
     A buffer for storing trajectories experienced by a VPG agent interacting
     with the environment, and using Generalized Advantage Estimation (GAE-Lambda)
@@ -205,7 +205,7 @@ def randwalk(env_fn, actor_critic=core.MLPActorCritic, ac_kwargs=dict(),  seed=0
 
     # Set up experience buffer
     local_steps_per_epoch = int(steps_per_epoch / num_procs())
-    buf = VPGBuffer(obs_dim, act_dim, local_steps_per_epoch, gamma, lam)
+    buf = Buffer(obs_dim, act_dim, local_steps_per_epoch, gamma, lam)
 
     # Set up function for computing VPG policy loss
     def compute_loss_pi(data):
@@ -272,6 +272,11 @@ def randwalk(env_fn, actor_critic=core.MLPActorCritic, ac_kwargs=dict(),  seed=0
     for epoch in range(epochs):
         for t in range(local_steps_per_epoch):
             a, v, logp = ac.step(torch.as_tensor(o, dtype=torch.float32))
+            # Here comes the chaos - random walking
+            if isinstance(env.action_space, gym.spaces.Box):
+                a = np.random.uniform(env.action_space.low, env.action_space.high)
+            elif isinstance(env.action_space, gym.spaces.Discrete):
+                a = np.random.randint(env.action_space.n, size=a.shape)
 
             next_o, r, d, _ = env.step(a)
             ep_ret += r
@@ -336,7 +341,7 @@ if __name__ == '__main__':
     parser.add_argument('--cpu', type=int, default=4)
     parser.add_argument('--steps', type=int, default=4000)
     parser.add_argument('--epochs', type=int, default=50)
-    parser.add_argument('--exp_name', type=str, default='vpg')
+    parser.add_argument('--exp_name', type=str, default='randwalk')
     args = parser.parse_args()
 
     mpi_fork(args.cpu)  # run parallel code with mpi
@@ -344,7 +349,7 @@ if __name__ == '__main__':
     from spinup.utils.run_utils import setup_logger_kwargs
     logger_kwargs = setup_logger_kwargs(args.exp_name, args.seed)
 
-    vpg(lambda : gym.make(args.env), actor_critic=core.MLPActorCritic,
+    randwalk(lambda : gym.make(args.env), actor_critic=core.MLPActorCritic,
         ac_kwargs=dict(hidden_sizes=[args.hid]*args.l), gamma=args.gamma, 
         seed=args.seed, steps_per_epoch=args.steps, epochs=args.epochs,
         logger_kwargs=logger_kwargs)
